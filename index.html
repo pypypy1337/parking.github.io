@@ -3,403 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выполнение парковочной системы</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .dialog {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 800px;
-            overflow: hidden;
-            animation: slideUp 0.5s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .dialog-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .dialog-title {
-            font-size: 1.5em;
-            font-weight: 600;
-        }
-        
-        .dialog-subtitle {
-            font-size: 0.9em;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-        
-        .dialog-content {
-            padding: 30px;
-            max-height: 500px;
-            overflow-y: auto;
-            background: #1a1a1a;
-            color: #f0f0f0;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-        
-        .output-line {
-            margin-bottom: 8px;
-            padding-left: 10px;
-            border-left: 3px solid transparent;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .output-line.system {
-            color: #4ecdc4;
-            border-left-color: #4ecdc4;
-        }
-        
-        .output-line.camera {
-            color: #45b7d1;
-            border-left-color: #45b7d1;
-        }
-        
-        .output-line.parking {
-            color: #96ceb4;
-            border-left-color: #96ceb4;
-        }
-        
-        .output-line.car {
-            color: #ffeaa7;
-            border-left-color: #ffeaa7;
-        }
-        
-        .output-line.action {
-            color: #fab1a0;
-            border-left-color: #fab1a0;
-        }
-        
-        .output-line.error {
-            color: #ff7675;
-            border-left-color: #ff7675;
-        }
-        
-        .output-line.success {
-            color: #55efc4;
-            border-left-color: #55efc4;
-        }
-        
-        .dialog-footer {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-top: 1px solid #eaeaea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4CAF50;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
-        
-        button {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 5px;
-            background: #667eea;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        button:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button.secondary {
-            background: #6c757d;
-        }
-        
-        button.secondary:hover {
-            background: #5a6268;
-        }
-        
-        .timestamp {
-            color: #888;
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
-    </style>
+    <title>Парковочный мониторинг</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23176b87'/%3E%3Cpath d='M10 24V8h7.4c3.6 0 6.1 2.2 6.1 5.6s-2.5 5.7-6.1 5.7h-3.2V24H10zm4.2-8.3h2.7c1.4 0 2.3-.8 2.3-2.1s-.9-2.1-2.3-2.1h-2.7v4.2z' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
 <body>
-    <div class="dialog">
-        <div class="dialog-header">
-            <div>
-                <div class="dialog-title">🚗 Парковочная система Python</div>
-                <div class="dialog-subtitle">Выполнение кода в реальном времени</div>
-            </div>
-            <div class="status">
-                <div class="status-indicator"></div>
-                <span>Выполняется...</span>
-            </div>
+    <header class="app-header">
+        <div>
+            <h1>Парковочный мониторинг</h1>
+            <p id="systemStamp">Состояние загружается</p>
         </div>
-        
-        <div class="dialog-content" id="output">
-        </div>
-        
-        <div class="dialog-footer">
-            <div class="info">
-                <div>Всего операций: <span id="operation-count">0</span></div>
-                <div class="timestamp">Запуск: <span id="current-time">...</span></div>
+        <div class="header-actions">
+            <div class="mode-tabs" role="tablist">
+                <button class="mode-tab active" data-view="work" type="button">Работа</button>
+                <button class="mode-tab" data-view="setup" type="button">Настройка</button>
             </div>
-            <div class="controls">
-                <button onclick="resetOutput()" class="secondary">⟳ Сбросить</button>
-                <button onclick="runCode()">▶ Запустить код</button>
-            </div>
+            <button class="button secondary" id="refreshButton" type="button">Обновить</button>
         </div>
-    </div>
+    </header>
 
-    <script>
-        const parkingCode = `class Parking:
-    def __init__(self, parking_stage):
-        self.parking_stage = parking_stage
-        self.is_occupied = False
-        print("Создается парковочное место: ")
+    <main>
+        <section class="status-line" id="statusLine" aria-live="polite"></section>
 
-    def check_occupancy(self):
-        if self.is_occupied:
-            return f"Место '{self.parking_stage}' занято"
-        else:
-            return f"Место '{self.parking_stage}' свободно"
+        <section class="view active" id="workView">
+            <div class="metrics-grid" id="metricsGrid"></div>
+            <div class="work-grid">
+                <section class="panel">
+                    <div class="section-heading">
+                        <h2>Видеопотоки</h2>
+                    </div>
+                    <div class="feed-grid" id="cameraFeeds"></div>
+                </section>
 
-    def occupy(self):
-        self.is_occupied = True
-        print(f"Место '{self.parking_stage}' теперь занято")
+                <aside class="panel">
+                    <div class="section-heading">
+                        <h2>Парковки</h2>
+                    </div>
+                    <div class="space-list" id="spaceList"></div>
+                    <div class="space-detail" id="spaceDetail"></div>
+                </aside>
+            </div>
+        </section>
 
-    def free(self):
-        self.is_occupied = False
-        print(f"Место '{self.parking_stage}' теперь свободно")`;
+        <section class="view" id="setupView">
+            <div class="forms-grid">
+                <form class="form-panel" id="cameraForm">
+                    <h2>Камера</h2>
+                    <label>
+                        Название
+                        <input name="name" autocomplete="off" required>
+                    </label>
+                    <label>
+                        RTSP
+                        <input name="rtsp_url" autocomplete="off" placeholder="rtsp://..." required>
+                    </label>
+                    <button class="button" type="submit">Добавить</button>
+                </form>
 
-        const objectCode = `class Object:
-    def __init__(self, name, color, number):
-        self.name = name
-        self.color = color
-        self.number = number
-        print("Заезжает машина: ")
+                <form class="form-panel" id="spaceForm">
+                    <h2>Парковка</h2>
+                    <label>
+                        Название
+                        <input name="name" autocomplete="off" required>
+                    </label>
+                    <div class="checkbox-group" id="spaceCameraChoices"></div>
+                    <button class="button" type="submit">Создать</button>
+                </form>
 
-    def park_car(self, parking):
-        if not parking.is_occupied:
-            parking.occupy()
-            print(f"{self.color} {self.name} {self.number} припарковалась на месте '{parking.parking_stage}'")
-        else:
-            print(f"Место '{parking.parking_stage}' уже занято! {self.color} {self.name} {self.number} не может припарковаться")
+                <form class="form-panel" id="settingsForm">
+                    <h2>Калибровка</h2>
+                    <label>
+                        Интервал занятости, сек.
+                        <input name="occupancy_interval_seconds" type="number" min="1" step="1" required>
+                    </label>
+                    <label>
+                        YOLO модель
+                        <input name="yolo_model" autocomplete="off">
+                    </label>
+                    <button class="button" type="submit">Сохранить</button>
+                </form>
+            </div>
 
-    def leave_parking(self, parking):
-        if parking.is_occupied:
-            parking.free()
-            print(f"{self.color} {self.name} {self.number} уехала с места '{parking.parking_stage}'")
-        else:
-            print(f"Место '{parking.parking_stage}' и так свободно")`;
+            <div class="setup-grid">
+                <aside class="panel setup-sidebar">
+                    <div class="section-heading">
+                        <h2>Область</h2>
+                    </div>
+                    <label>
+                        Парковка
+                        <select id="spaceSelect"></select>
+                    </label>
+                    <label>
+                        Камера
+                        <select id="cameraSelect"></select>
+                    </label>
+                    <div class="tool-row">
+                        <button class="tool-button active" data-zone-kind="parking" type="button">P</button>
+                        <button class="tool-button" data-zone-kind="forbidden" type="button">X</button>
+                    </div>
+                    <div class="zone-list" id="zoneList"></div>
+                </aside>
 
-        const cameraCode = `class Camera:
-    def __init__(self, name, x1, y1, x2, y2):
-        self.name = name
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-        print(f"Создается камера: ")
+                <section class="panel editor-panel">
+                    <div class="section-heading">
+                        <h2>Разметка</h2>
+                    </div>
+                    <div class="editor-viewport" id="editorViewport">
+                        <img id="editorFrame" alt="Кадр камеры">
+                        <div class="zone-layer" id="editorZones"></div>
+                    </div>
+                    <form class="zone-editor" id="zoneEditor">
+                        <div class="zone-editor-empty">Зона не выбрана</div>
+                        <div class="zone-editor-fields hidden" id="zoneEditorFields">
+                            <label>
+                                Тип
+                                <select name="kind">
+                                    <option value="parking">P</option>
+                                    <option value="forbidden">X</option>
+                                </select>
+                            </label>
+                            <label>
+                                X
+                                <input name="x" type="number" min="0" max="100" step="0.1">
+                            </label>
+                            <label>
+                                Y
+                                <input name="y" type="number" min="0" max="100" step="0.1">
+                            </label>
+                            <label>
+                                Ширина
+                                <input name="width" type="number" min="1" max="100" step="0.1">
+                            </label>
+                            <label>
+                                Высота
+                                <input name="height" type="number" min="1" max="100" step="0.1">
+                            </label>
+                            <div class="editor-actions">
+                                <button class="button" type="submit">Сохранить</button>
+                                <button class="button secondary" id="vehicleToggle" type="button">Авто</button>
+                                <button class="button danger" id="deleteZone" type="button">Удалить</button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </section>
+    </main>
 
-    def monitor_parking(self, parking):
-        status = parking.check_occupancy()
-        print(f"Камера '{self.name}': {status}")
-
-    def get_coordinates(self):
-        return f"'{self.name}' следит за областью: ({self.x1}, {self.y1}, {self.x2}, {self.y2})"`;
-
-        const mainCode = `from parking import Parking
-from camera import Camera
-from object import Object
-
-park = Parking("A1")
-print(park.parking_stage)
-print(park.check_occupancy())
-
-cam = Camera("Camera 1", 100, 100, 200, 200)
-print(cam.name)
-print(cam.get_coordinates())
-
-cam.monitor_parking(park)
-
-car1 = Object("Audi", "Black", "М512УХ")
-print(car1.name)
-print(car1.color)
-print(car1.number)
-
-car1.park_car(park)
-
-cam.monitor_parking(park)
-
-car2 = Object("BMW", "White", "А695КА")
-car2.park_car(park)
-
-car1.leave_parking(park)
-
-car2.park_car(park)
-
-cam.monitor_parking(park)`;
-
-        const outputLines = [
-            { text: "Создается парковочное место: ", type: "parking" },
-            { text: "A1", type: "system" },
-            { text: "Место 'A1' свободно", type: "parking" },
-            { text: "Создается камера: ", type: "camera" },
-            { text: "Camera 1", type: "camera" },
-            { text: "'Camera 1' следит за областью: (100, 100, 200, 200)", type: "camera" },
-            { text: "Камера 'Camera 1': Место 'A1' свободно", type: "camera" },
-            { text: "Заезжает машина: ", type: "car" },
-            { text: "Audi", type: "car" },
-            { text: "Black", type: "car" },
-            { text: "М512УХ", type: "car" },
-            { text: "Место 'A1' теперь занято", type: "action" },
-            { text: "Black Audi М512УХ припарковалась на месте 'A1'", type: "success" },
-            { text: "Камера 'Camera 1': Место 'A1' занято", type: "camera" },
-            { text: "Заезжает машина: ", type: "car" },
-            { text: "Место 'A1' уже занято! White BMW А695КА не может припарковаться", type: "error" },
-            { text: "Место 'A1' теперь свободно", type: "action" },
-            { text: "Black Audi М512УХ уехала с места 'A1'", type: "success" },
-            { text: "Место 'A1' теперь занято", type: "action" },
-            { text: "White BMW А695КА припарковалась на месте 'A1'", type: "success" },
-            { text: "Камера 'Camera 1': Место 'A1' занято", type: "camera" }
-        ];
-
-        let currentLine = 0;
-        let operationCount = 0;
-        const outputElement = document.getElementById('output');
-        const operationCountElement = document.getElementById('operation-count');
-        const currentTimeElement = document.getElementById('current-time');
-
-        function updateCurrentTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ru-RU', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            currentTimeElement.textContent = timeString;
-        }
-
-        function addOutputLine(text, type = "system") {
-            const line = document.createElement('div');
-            line.className = `output-line ${type}`;
-            line.textContent = text;
-            outputElement.appendChild(line);
-            
-            outputElement.scrollTop = outputElement.scrollHeight;
-            
-            operationCount++;
-            operationCountElement.textContent = operationCount;
-        }
-
-        function runCode() {
-            resetOutput();
-            currentLine = 0;
-            operationCount = 0;
-            
-            const interval = setInterval(() => {
-                if (currentLine < outputLines.length) {
-                    const line = outputLines[currentLine];
-                    addOutputLine(line.text, line.type);
-                    currentLine++;
-                } else {
-                    clearInterval(interval);
-                    addOutputLine("✅ Выполнение программы завершено", "success");
-                }
-            }, 300); 
-        }
-
-        function resetOutput() {
-            outputElement.innerHTML = '';
-            operationCount = 0;
-            operationCountElement.textContent = '0';
-            addOutputLine("🚀 Готов к выполнению...", "system");
-            updateCurrentTime();
-        }
-
-        window.onload = function() {
-            updateCurrentTime();
-            setInterval(updateCurrentTime, 1000); 
-            resetOutput();
-            
-            setTimeout(() => {
-                addOutputLine("⚙️ Инициализация парковочной системы...", "system");
-                setTimeout(runCode, 800);
-            }, 1000);
-        }
-    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
